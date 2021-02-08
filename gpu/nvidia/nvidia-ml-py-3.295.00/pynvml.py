@@ -147,7 +147,7 @@ def _nvmlCheckReturn(ret):
 def _nvmlGetFunctionPointer(name):
     global nvmlLib
     global libLoadLock
-    
+
     libLoadLock.acquire()
     try:
         # ensure library was loaded
@@ -380,7 +380,7 @@ def nvmlSystemGetNVMLVersion():
     fn = _nvmlGetFunctionPointer("nvmlSystemGetNVMLVersion")
     ret = fn(c_version, c_uint(NVML_SYSTEM_NVML_VERSION_BUFFER_SIZE))
     _nvmlCheckReturn(ret)
-    return c_version.value
+    return c_version.value.decode('utf-8')
 
 # Added in 2.285
 def nvmlSystemGetProcessName(pid):
@@ -388,14 +388,14 @@ def nvmlSystemGetProcessName(pid):
     fn = _nvmlGetFunctionPointer("nvmlSystemGetProcessName")
     ret = fn(c_uint(pid), c_name, c_uint(1024))
     _nvmlCheckReturn(ret)
-    return c_name.value
+    return c_name.value.decode('utf-8')
 
 def nvmlSystemGetDriverVersion():
     c_version = create_string_buffer(NVML_SYSTEM_DRIVER_VERSION_BUFFER_SIZE)
     fn = _nvmlGetFunctionPointer("nvmlSystemGetDriverVersion")
     ret = fn(c_version, c_uint(NVML_SYSTEM_DRIVER_VERSION_BUFFER_SIZE))
     _nvmlCheckReturn(ret)
-    return c_version.value
+    return c_version.value.decode('utf-8')
 
 # Added in 2.285
 def nvmlSystemGetHicVersion():
@@ -412,10 +412,10 @@ def nvmlSystemGetHicVersion():
         raise NVMLError(ret)
     
     # if there are no hics
-    if (c_count.value == 0):
+    if (c_count.value.decode('utf-8') == 0):
         return []
     
-    hic_array = c_nvmlHwbcEntry_t * c_count.value
+    hic_array = c_nvmlHwbcEntry_t * c_count.value.decode('utf-8')
     hics = hic_array()
     ret = fn(byref(c_count), hics)
     _nvmlCheckReturn(ret)
@@ -427,7 +427,7 @@ def nvmlUnitGetCount():
     fn = _nvmlGetFunctionPointer("nvmlUnitGetCount")
     ret = fn(byref(c_count))
     _nvmlCheckReturn(ret)
-    return c_count.value
+    return c_count.value.decode('utf-8')
 
 def nvmlUnitGetHandleByIndex(index):
     c_index = c_uint(index)
@@ -463,7 +463,7 @@ def nvmlUnitGetTemperature(unit, type):
     fn = _nvmlGetFunctionPointer("nvmlUnitGetTemperature")
     ret = fn(unit, c_uint(type), byref(c_temp))
     _nvmlCheckReturn(ret)
-    return c_temp.value
+    return c_temp.value.decode('utf-8')
 
 def nvmlUnitGetFanSpeedInfo(unit):
     c_speeds = c_nvmlUnitFanSpeeds_t()
@@ -471,7 +471,7 @@ def nvmlUnitGetFanSpeedInfo(unit):
     ret = fn(unit, byref(c_speeds))
     _nvmlCheckReturn(ret)
     return c_speeds
-    
+
 # added to API
 def nvmlUnitGetDeviceCount(unit):
     c_count = c_uint(0)
@@ -481,11 +481,11 @@ def nvmlUnitGetDeviceCount(unit):
     if (ret == NVML_ERROR_INSUFFICIENT_SIZE):
         ret = NVML_ERROR_SUCCESS
     _nvmlCheckReturn(ret)
-    return c_count.value
+    return c_count.value.decode('utf-8')
 
 def nvmlUnitGetDevices(unit):
     c_count = c_uint(nvmlUnitGetDeviceCount(unit))
-    device_array = c_nvmlDevice_t * c_count.value
+    device_array = c_nvmlDevice_t * c_count.value.decode('utf-8')
     c_devices = device_array()
     fn = _nvmlGetFunctionPointer("nvmlUnitGetDevices")
     ret = fn(unit, byref(c_count), c_devices)
@@ -523,7 +523,7 @@ def nvmlDeviceGetHandleByUUID(uuid):
     ret = fn(c_uuid, byref(device))
     _nvmlCheckReturn(ret)
     return device
-    
+
 def nvmlDeviceGetHandleByPciBusId(pciBusId):
     c_busId = c_char_p(pciBusId)
     device = c_nvmlDevice_t()
@@ -537,21 +537,21 @@ def nvmlDeviceGetName(handle):
     fn = _nvmlGetFunctionPointer("nvmlDeviceGetName")
     ret = fn(handle, c_name, c_uint(NVML_DEVICE_NAME_BUFFER_SIZE))
     _nvmlCheckReturn(ret)
-    return c_name.value
-    
+    return c_name.value.decode('utf-8')
+
 def nvmlDeviceGetSerial(handle):
     c_serial = create_string_buffer(NVML_DEVICE_SERIAL_BUFFER_SIZE)
     fn = _nvmlGetFunctionPointer("nvmlDeviceGetSerial")
     ret = fn(handle, c_serial, c_uint(NVML_DEVICE_SERIAL_BUFFER_SIZE))
     _nvmlCheckReturn(ret)
-    return c_serial.value
+    return c_serial.value.decode('utf-8')
     
 def nvmlDeviceGetUUID(handle):
     c_uuid = create_string_buffer(NVML_DEVICE_UUID_BUFFER_SIZE)
     fn = _nvmlGetFunctionPointer("nvmlDeviceGetUUID")
     ret = fn(handle, c_uuid, c_uint(NVML_DEVICE_UUID_BUFFER_SIZE))
     _nvmlCheckReturn(ret)
-    return c_uuid.value
+    return c_uuid.value.decode('utf-8')
     
 def nvmlDeviceGetInforomVersion(handle, infoRomObject):
     c_version = create_string_buffer(NVML_DEVICE_INFOROM_VERSION_BUFFER_SIZE)
@@ -559,7 +559,7 @@ def nvmlDeviceGetInforomVersion(handle, infoRomObject):
     ret = fn(handle, _nvmlInforomObject_t(infoRomObject),
 	         c_version, c_uint(NVML_DEVICE_INFOROM_VERSION_BUFFER_SIZE))
     _nvmlCheckReturn(ret)
-    return c_version.value
+    return c_version.value.decode('utf-8')
     
 def nvmlDeviceGetDisplayMode(handle):
     c_mode = _nvmlEnableState_t()
@@ -624,7 +624,7 @@ def nvmlDeviceGetPerformanceState(handle):
     fn = _nvmlGetFunctionPointer("nvmlDeviceGetPerformanceState")
     ret = fn(handle, byref(c_pstate))
     _nvmlCheckReturn(ret)
-    return c_pstate.value
+    return c_pstate.value.decode('utf-8')
 
 def nvmlDeviceGetPowerManagementMode(handle):
     c_pcapMode = _nvmlEnableState_t()
@@ -667,7 +667,7 @@ def nvmlDeviceGetEccMode(handle):
     fn = _nvmlGetFunctionPointer("nvmlDeviceGetEccMode")
     ret = fn(handle, byref(c_currState), byref(c_pendingState))
     _nvmlCheckReturn(ret)
-    return [c_currState.value, c_pendingState.value]
+    return [c_currState.value.decode('utf-8'), c_pendingState.value.decode('utf-8')]
 
 # added to API
 def nvmlDeviceGetCurrentEccMode(handle):
@@ -683,7 +683,7 @@ def nvmlDeviceGetTotalEccErrors(handle, bitType, counterType):
     ret = fn(handle, _nvmlEccBitType_t(bitType),
 	         _nvmlEccCounterType_t(counterType), byref(c_count))
     _nvmlCheckReturn(ret)
-    return c_count.value
+    return c_count.value.decode('utf-8')
 
 def nvmlDeviceGetDetailedEccErrors(handle, bitType, counterType):
     c_count = c_nvmlEccErrorCounts_t()
@@ -706,7 +706,7 @@ def nvmlDeviceGetDriverModel(handle):
     fn = _nvmlGetFunctionPointer("nvmlDeviceGetDriverModel")
     ret = fn(handle, byref(c_currModel), byref(c_pendingModel))
     _nvmlCheckReturn(ret)
-    return [c_currModel.value, c_pendingModel.value]
+    return [c_currModel.value.decode('utf-8'), c_pendingModel.value.decode('utf-8')]
 
 # added to API
 def nvmlDeviceGetCurrentDriverModel(handle):
@@ -722,7 +722,7 @@ def nvmlDeviceGetVbiosVersion(handle):
     fn = _nvmlGetFunctionPointer("nvmlDeviceGetVbiosVersion")
     ret = fn(handle, c_version, c_uint(NVML_DEVICE_VBIOS_VERSION_BUFFER_SIZE))
     _nvmlCheckReturn(ret)
-    return c_version.value
+    return c_version.value.decode('utf-8')
 
 # Added in 2.285
 def nvmlDeviceGetComputeRunningProcesses(handle):
@@ -817,7 +817,7 @@ def nvmlDeviceGetSupportedEventTypes(handle):
     fn = _nvmlGetFunctionPointer("nvmlDeviceGetSupportedEventTypes")
     ret = fn(handle, byref(c_eventTypes))
     _nvmlCheckReturn(ret)
-    return c_eventTypes.value
+    return c_eventTypes.value.decode('utf-8')
 
 # Added in 2.285
 # raises NVML_ERROR_TIMEOUT exception on timeout
@@ -841,7 +841,7 @@ def nvmlEventDataGetPerformanceState(data):
     pstate = _nvmlPstates_t()
     ret = fn(byref(data), byref(pstate))
     _nvmlCheckReturn(ret)
-    return pstate.value
+    return pstate.value.decode('utf-8')
 
 # Added in 2.285
 def nvmlEventDataGetXidCriticalError(data):
@@ -849,7 +849,7 @@ def nvmlEventDataGetXidCriticalError(data):
     xid = c_uint()
     ret = fn(byref(data), byref(xid))
     _nvmlCheckReturn(ret)
-    return xid.value
+    return xid.value.decode('utf-8')
 
 # Added in 2.285
 def nvmlEventDataGetEccErrorCount(data):
@@ -857,7 +857,7 @@ def nvmlEventDataGetEccErrorCount(data):
     ecc = c_ulonglong()
     ret = fn(byref(data), byref(ecc))
     _nvmlCheckReturn(ret)
-    return ecc.value
+    return ecc.value.decode('utf-8')
 
 # Added in 3.295
 def nvmlDeviceOnSameBoard(handle1, handle2):
@@ -865,7 +865,7 @@ def nvmlDeviceOnSameBoard(handle1, handle2):
     onSameBoard = c_int()
     ret = fn(handle1, handle2, byref(onSameBoard))
     _nvmlCheckReturn(ret)
-    return (onSameBoard.value != 0)
+    return (onSameBoard.value.decode('utf-8') != 0)
 
 # Added in 3.295
 def nvmlDeviceGetCurrPcieLinkGeneration(handle):
